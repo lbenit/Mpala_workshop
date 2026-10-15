@@ -6,7 +6,8 @@
 # Description
 
 # This script shows how to create rarefaction curves using two packages: vegan 
-# and iNext. Rarefaction is useful for 
+# and iNext. Rarefaction is useful for understanding how sampling affects
+# observed species richness. 
 
 #############################
 # Load packages

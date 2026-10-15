@@ -11,7 +11,7 @@
 # have reduced the data down to a few dimensions, we use clustering to identify 
 # the community (aka clusters).
 
-# This script compares three ordination techniques.
+# This script compares three ordination techniques and two clustering methods.
 
 # 1. Principal Components Analysis (PCA):
 # A linear method of dimension reduction based on the distance of plots
@@ -126,7 +126,8 @@ filtered_matrix <- comm_matrix[rowSums(comm_matrix) > 0, ]# Remove plots with fe
 
 
 # Convert values using Hellinger method
-# Hellinger...
+# Hellinger is particularly good for data with a lot of zeros
+# It divides all values by the row sum and takes the square root of the values
 bio_hel <- decostand(filtered_matrix, method = "hellinger")
 
 
