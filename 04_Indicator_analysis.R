@@ -1,73 +1,185 @@
-####
-# Indicator species
-library(indicspecies)
+# Identifying indicator genera
+# Author: Lorena Benitez
+# Date: October 2026
 
-# indicator species analysis
+###########################################
+# Description
+
+# This script is used to identify the indicator species within each cluster.
+# It allows for the clusters to be identified as ecological communities with
+# indicator statistics for each species that describes how influential it is
+# in each community. 
+
+
+#############################
+# Load packages
+############################
+
+# Install new package
+install.packages('indicspecies')
+
+library(indicspecies)
+library(dplyr)
+
+
+#############################
+# Read in data
+############################
+# Read in plot metadata
+plots<-read.csv('single_census_plot.csv') 
+
+# Load in community matrix
+bio_hel<-read.csv('hellinger_transformed_data.csv')%>%
+  select(-X)
+
+
+####################################
+# Select which ordination and clustering method you want to use
+# Important: Only select one!!!!!
+#####################################
+
+# Option 1: PCA
+sites<-read.csv('pca_site_scores.csv',row.names = NULL )%>%
+  select(-X)
+species<-read.csv('pca_species_scores.csv',row.names = NULL )%>%
+  select(-X)
+
+
+
+
+
+# Option 2: NMDS
+sites<-read.csv('nmds_scores.csv',row.names = NULL )%>%
+  select(-X)
+species<-read.csv('nmds_species.csv',row.names = NULL )%>%
+  select(-X)
+
+
+
+
+#Option 3: UMAP
+sites<-read.csv('umap_plot_scores.csv',row.names = NULL )%>%
+  select(-X)
+species<-read.csv('umap_species_scores.csv',row.names = NULL )%>%
+  select(-X)
+
+
+
+
+
+
+
+
+
+#############################################
+# Identify indicators
+############################################
+
+# Look at this R vignette if you want to learn more about indicspecies package
+# https://cran.r-project.org/web/packages/indicspecies/vignettes/IndicatorSpeciesAnalysis.html
+
+
+# Indicator species analysis
 ind <- multipatt(
   x = bio_hel,
-  cluster = nms_sites$cluster4 ,
-  func = "r.g"
+  cluster = sites$cluster,
+  func = "r.g" # Change this to alter the calculation method
 )
 
+# Options for func are as follows:
+# IndVal = Tests the association of species presence with groups
+# Indval.g = Same as IndVal, but corrects for a different number of sites in each group
+# r = Test the correlation between species abundance and groups
+# r.g = Same as r, but corrects for a different number of sites in each group
+
+
+# Look at summary of scores by cluster
 summary(ind)
+
+
+
+
+#*****************************
+#* Q1: Look at the summary of indicator scores by cluster. 
+#*     Do the top indicators make sense based on what you know 
+#*     about southern African tree communities?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Save indicator scores
 ind_table <- ind$sign
+
+write.csv(ind_table, 'indicator_statistics.csv') #change name based on method
+
+
 
 ####################################
 # Reorganize data for saving
-plot_assignments <- nms_sites %>%
-  mutate(
-    `Floristic group` = recode(cluster4,
-                               `1` = "Mopane",
-                               `2` = "Baikiaea",
-                               `3` = "Miombo",
-                               `4` = "Burkea"))
+###################################
 
+# Assign your clusters to an ecologically meaningful name
+# I usually look at the the first few indicators
+plot_assignments <- sites %>%
+  mutate(
+    `Floristic group` = recode(cluster, # Add numbers based on number of clusters you have
+                               
+                               `1` = "", # Fill in with your description based on cluster 1 indicators
+                               `2` = "", # Fill in with your description based on cluster 2 indicators
+                               `3` = "", # Fill in with your description based on cluster 3 indicators
+                               `4` = ""))# Fill in with your description based on cluster 4 indicators
+
+# Get plot_ids
 plot_assignments$plot_id<-row.names(plot_assignments)
 row.names(plot_assignments)<-NULL
 
-############
-# PLot with new colors
-library(patchwork)
-nmds12<-ggplot() +
+#Save
+write.csv(plot_assignments, 'plot_assignments.csv') #change file name based on selection
+
+
+#################################
+# Plot ordination space with assigned cluster
+##################################
+
+ggplot() +
   geom_point(data = plot_assignments,
-             aes(NMDS1, NMDS2, color = `Floristic group`),
+             aes(x=UMAP1, #Change based on the technique you chose
+                 y=UMAP2, #Change based on the technique you chose
+                 color = `Floristic group`),
              size = 3) +
   theme_classic()+
-  theme(#legend.position = 'none',
-    #axis.text.x=element_blank(),
-    #axis.ticks.x=element_blank(),
-    legend.text = element_text(size=20),
-    legend.title = element_text(size=30),
-    legend.key.size = unit(1, 'cm'),
-    axis.title=element_text(size=20),
-    axis.text= element_text(size=18))
-nmds23<-ggplot() +
-  geom_point(data = plot_assignments,
-             aes(NMDS1, NMDS3, color = `Floristic group`),
-             size = 3) +
-  theme_classic()+
-  theme(#legend.position = 'none',
-    #axis.text.x=element_blank(),
-    #axis.ticks.x=element_blank(),
+  theme(
     legend.text = element_text(size=20),
     legend.title = element_text(size=30),
     legend.key.size = unit(1, 'cm'),
     axis.title=element_text(size=20),
     axis.text= element_text(size=18))
 
-nmds_plot<-(nmds12/nmds23)+plot_layout(guides = 'collect')+ plot_annotation(tag_levels = 'A')
-nmds_plot
 
-
-###############################################################
-# Save data
-
-bi$plot_id<-rownames(bi)
-bi_info<-bi%>%select('Brachystegia','Burkea','Baikiaea','Colophospermum','Guibourtia','Combretum','Erythrophleum','plot_id')
-join<-left_join(plot_assignments,bi_info, by='plot_id')
+#*****************************
+#* Q2: Do the communities make sense when plotted?
 
 
 
 
-write.csv(bi,file='Zim_2026/basal_area_genus_percentage.csv')
-write.csv(plot_assignments,file='Zim_2026/NMDS_clustering.csv' )
+
+
+
+###################################################################
+# Optional
+##################################################################
+
+# Identify the indicators using another method and compare them to the first.
+# Do they result in similar communities? If not, think about why that might be. 
+
+

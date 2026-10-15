@@ -5,7 +5,33 @@
 ###########################################
 # Description
 
-# This script 
+# Ordination is used to reduce the complexity of ecological 
+# data down to fewer dimensions. In this case, we are
+# reducing the species abundances to identify ecological communities. Once we 
+# have reduced the data down to a few dimensions, we use clustering to identify 
+# the community (aka clusters).
+
+# This script compares three ordination techniques.
+
+# 1. Principal Components Analysis (PCA):
+# A linear method of dimension reduction based on the distance of plots
+# from one another.
+
+
+# 2. Non-metric Multidimensional Scaling (NMDS):
+# Is a ranked-based, non-linear method. This means that it doesn't rely on the 
+# distance between plots as much as which plots are closer to one another. 
+# You need a dissimilarity matrix to calculate NMDS.
+# It determines is plot A is closer to plot B or C in the original high dimensional space.
+# And if this can be preserved in fewer dimensions (usually 2 or 3). 
+
+
+
+# 3. Uniform Manifold Approximation and Projection (UMAP):
+# UMAP is a non-linear dimension reduction technique. It is similar to PCA, 
+# but instead of fitting data to straight line relationships, it allows for 
+# more complex representations of data patterns. 
+
 
 
 #############################
@@ -104,7 +130,8 @@ filtered_matrix <- comm_matrix[rowSums(comm_matrix) > 0, ]# Remove plots with fe
 bio_hel <- decostand(filtered_matrix, method = "hellinger")
 
 
-
+# Save file as we will need it in the next tutorial
+write.csv(bio_hel,'hellinger_transformed_data.csv')
 
 
 
@@ -142,8 +169,14 @@ fviz_pca_ind(pca_result,
              axes=c(1,2))# Specify which components to plot
 
 
+# Make dataframe with plot scores
+pca_site<-as.data.frame(pca_result$x)
+
+
+
+
 # Identify ideal number of clusters
-fviz_nbclust(bio_hel, kmeans, method = "wss") + 
+fviz_nbclust(pca_site, kmeans, method = "wss", k.max=20) + 
   labs(subtitle = "Elbow Method")
 # Look at the plot and determine at which number of clusters the curve
 # goes from being vertical to being horizontal
@@ -151,8 +184,8 @@ fviz_nbclust(bio_hel, kmeans, method = "wss") +
 
 
 # Specify the number of clusters
-kmeans_res <- kmeans(pca_result$x[, 1:2], 
-                     centers = 10, # Change this to alter the number of clusters
+kmeans_res <- kmeans(pca_result$x, 
+                     centers = 3, # Change this to alter the number of clusters
                      nstart = 25)
 
 # Plot first two components with 
@@ -170,6 +203,29 @@ fviz_pca_ind(pca_result,
 
 #*Q2: Test out a few different K numbers. Which visually looks the best?
 #*    There is not a correct answer with this one, just a thought exercise.
+
+
+
+
+
+
+####
+# Save files with plot and species scores
+# Prep species data
+pca_species<-as.data.frame(pca_result$rotation)
+pca_species$species<-rownames(pca_species)
+write.csv(pca_species,'pca_species_scores.csv')
+
+
+# Prep plot data
+
+# Add cluster assignments with your chosen K
+pca_site$cluster<-as.factor(kmeans_res$cluster)
+
+pca_site$plot_id<-rownames(pca_site)
+write.csv(pca_site,'pca_site_scores.csv')
+
+
 
 
 
@@ -319,8 +375,8 @@ dist_matrix<-as.matrix(bio_distmat)
 umap_result <- umap(
   dist_matrix, 
   input = "dist", 
-  n_neighbors = 15, 
-  min_dist = 0.1, 
+  n_neighbors = 100, 
+  min_dist = 1, 
   n_components = 2 # Number of dimensions to reduce to: use either 2 or 3
 )
 
@@ -342,39 +398,95 @@ ggplot(umap_coords, aes(x = UMAP1, y = UMAP2)) +
 # Cluster plots using hierarchical clustering
 #################
 # K-means clustering performs poorly umap analysis
-# Instead, we use hierarhcical clustering to cluster the plots
+# Instead, we use hierarchical clustering to cluster the plots
 
 
-# Select only scores
+# Select umap scores scores
 umap_coords<-umap_data[,1:2]
 
 
 #Hierarchical clustering of umap scores
-hc <- hclust(dist(umap_coords))
+dist_umap<-dist(umap_coords)# first compute the distance between points
+hc <- hclust(dist_umap, method='ward.D2')# Then cluster the distances
 
-# PLot the clustering tree
+# Plot the clustering tree
 plot(hc)
-rect.hclust(hc, k = 5, border = "red")
+
+# add lines to show where breaks for four and six are
+rect.hclust(hc, k = 4, border = "red")
 rect.hclust(hc, k = 6, border = "blue")
-rect.hclust(hc, k = 7, border = "cyan")
 
 
-# Determine where to cut the trees
-clusters <- cutree(hc, k = 4)
-df$cluster <- as.factor(clusters)
+##########
+# Determine the optimal number of clusters using the average silhouette scores
+############
+
+# Initialize vector to store scores
+sil_width_hc <- c()
+
+# Loop through k = 2 to 15 (adjust max if you expect more clusters)
+max_k <- 15 #chnage number to adjust how many clusters to test
+
+# Run loop to get scores for each number of clusters
+for(i in 2:max_k){
+  # Cut the tree to get cluster assignments
+  clusters_i <- cutree(hc, k = i)
+  
+  # Calculate silhouette width using the UMAP distance matrix
+  sil <- cluster::silhouette(clusters_i, dist_umap)
+  
+  # Store the mean silhouette width
+  sil_width_hc[i] <- mean(sil[, 3])
+}
+
+# Remove the first element (NA from index 1 since we started loop at 2)
+sil_width_hc <- sil_width_hc[!is.na(sil_width_hc)]
+
+
+# Plot the silhouette score results and use the elbow method to determine the 
+# best number of clusters
+plot(2:max_k, sil_width_hc,
+     type = "b", pch = 19,
+     xlab = "Number of clusters (k)",
+     ylab = "Average Silhouette Width",
+     main = "Optimal Clusters- use elbow method")
 
 
 
-#####
-# Visualize in 3D
-plot_ly(umap_data, x = ~x, y = ~y, 
-        type = "scatter3d", mode = "markers",color= ~cluster,colors = c("red",'yellow','orange',
-                                                                        'purple','pink', 'darkred','brown','deeppink',
-                                                                        'darkmagenta','coral1'),
-        marker = list(size = 4))
+#****************************
+#*Q4: What is the best number of clusters according to the silhouette scores?
+
+
+
+
+
+
+
+
+
+
+
+# Determine where to cut the trees i.e. how many clusters do you want?
+# Input the number of clusters you have selected
+clusters <- cutree(hc, k = ) # Fill in k =  with your choice
+
+# Make sure  that cluster is a factor
+umap_data$cluster <- as.factor(clusters)
+umap_data$plot_id<-rownames(umap_data)
+
+
+# Plot UMAP space with clusters
+ggplot(umap_data, aes(x = UMAP1, y = UMAP2, color = cluster)) +
+  geom_point(size = 2) +
+  guides(color = guide_legend(override.aes = list(size = 8)))+
+  theme_minimal()
+
+
+
 
 ##############
-# Get genus scores
+# Get species scores
+##############
 species_scores <- wascores(umap_data[,1:2], bio_hel)
 spscores <- data.frame(
   UMAP1 = species_scores[,1],
@@ -383,31 +495,38 @@ spscores <- data.frame(
 )
 
 
+# Plot space with species labelled
+library(ggrepel) # install.packages('ggrepel') if necessary
+# this package keeps the species names from overlapping
 
-# PLotting
-library(ggrepel)
-ggplot(df, aes(x = x, y = y, color = cluster)) +
-  geom_point(size = 1.5, alpha = 0.5) +
-  
-  scale_color_viridis_d(option = "turbo") +
+
+# Plot with species scores
+ggplot(umap_data, aes(x = UMAP1, y = UMAP2, color = cluster)) +
+  geom_point(size = 2) +
   guides(color = guide_legend(override.aes = list(size = 8))) +
-  geom_text_repel(data = important3, aes(x = x, y = y, label=genus),
+  geom_text_repel(data = spscores, aes(x = UMAP1, y = UMAP2, label=species),
                   color = "black", size = 5)+
   theme_bw() +
   labs(
     x = "UMAP 1",
     y = "UMAP 2",
     color = "Clusters"   # legend title
-  ) +
-  theme(
-    legend.position = "right",   # move legend if needed
-    axis.title = element_text(size = 50),                  # axis titles
-    axis.text = element_text(size = 40),                   # axis tick labels
-    legend.text = element_text(size = 30),                 # legend labels
-    legend.title = element_text(size = 40)  ,
-    legend.key.size = unit(3, "lines")
-    
-  )
+  ) 
 
+
+
+# Save species and plot scores with cluster assignments
+write.csv(spscores,'umap_species_scores.csv')
+
+write.csv(umap_data,'umap_plot_scores.csv')
+
+
+
+
+
+
+
+#****************************
+#*Q5: Which method did you prefer? Why?
 
 
