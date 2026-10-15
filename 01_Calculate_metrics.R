@@ -37,8 +37,8 @@ library(vegan)
 #############################
 # Read in data
 ############################
-plots<-read.csv('single_census_plot.csv') 
-stems<-read.csv('single_census_stems.csv')
+plots<-read.csv('Data/single_census_plot.csv') 
+stems<-read.csv('Data/single_census_stems.csv')
 
 
 #############################
@@ -193,7 +193,7 @@ diversity_summary<-biodiversity_data%>%
             sd_rarified=sd(rarefied,na.rm=TRUE))
 
 # Save
-write.csv(diversity_summary,'diversity_metrics_by_site.csv')
+write.csv(diversity_summary,'Data/diversity_metrics_by_site.csv')
 
 #********
 #*Q3: How would you calculate the mean across all sites?

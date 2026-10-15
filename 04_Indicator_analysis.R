@@ -26,10 +26,10 @@ library(dplyr)
 # Read in data
 ############################
 # Read in plot metadata
-plots<-read.csv('single_census_plot.csv') 
+plots<-read.csv('Data/single_census_plot.csv') 
 
 # Load in community matrix
-bio_hel<-read.csv('hellinger_transformed_data.csv')%>%
+bio_hel<-read.csv('Data/hellinger_transformed_data.csv')%>%
   select(-X)
 
 
@@ -39,9 +39,9 @@ bio_hel<-read.csv('hellinger_transformed_data.csv')%>%
 #####################################
 
 # Option 1: PCA
-sites<-read.csv('pca_site_scores.csv',row.names = NULL )%>%
+sites<-read.csv('Data/pca_site_scores.csv',row.names = NULL )%>%
   select(-X)
-species<-read.csv('pca_species_scores.csv',row.names = NULL )%>%
+species<-read.csv('Data/pca_species_scores.csv',row.names = NULL )%>%
   select(-X)
 
 
@@ -49,18 +49,18 @@ species<-read.csv('pca_species_scores.csv',row.names = NULL )%>%
 
 
 # Option 2: NMDS
-sites<-read.csv('nmds_scores.csv',row.names = NULL )%>%
+sites<-read.csv('Data/nmds_scores.csv',row.names = NULL )%>%
   select(-X)
-species<-read.csv('nmds_species.csv',row.names = NULL )%>%
+species<-read.csv('Data/nmds_species.csv',row.names = NULL )%>%
   select(-X)
 
 
 
 
 #Option 3: UMAP
-sites<-read.csv('umap_plot_scores.csv',row.names = NULL )%>%
+sites<-read.csv('Data/umap_plot_scores.csv',row.names = NULL )%>%
   select(-X)
-species<-read.csv('umap_species_scores.csv',row.names = NULL )%>%
+species<-read.csv('Data/umap_species_scores.csv',row.names = NULL )%>%
   select(-X)
 
 
@@ -181,5 +181,10 @@ ggplot() +
 
 # Identify the indicators using another method and compare them to the first.
 # Do they result in similar communities? If not, think about why that might be. 
+
+
+# Compare the clusters to the plot_cluster column in plots. 
+# Are the clusters found at all sites or are they geographically separated?
+
 
 

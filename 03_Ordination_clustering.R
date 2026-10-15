@@ -58,8 +58,8 @@ library(umap)
 #############################
 # Read in data
 ############################
-plots<-read.csv('single_census_plot.csv') 
-stems<-read.csv('single_census_stems.csv')
+plots<-read.csv('Data/single_census_plot.csv') 
+stems<-read.csv('Data/single_census_stems.csv')
 
 
 #############################
@@ -132,7 +132,7 @@ bio_hel <- decostand(filtered_matrix, method = "hellinger")
 
 
 # Save file as we will need it in the next tutorial
-write.csv(bio_hel,'hellinger_transformed_data.csv')
+write.csv(bio_hel,'Data/hellinger_transformed_data.csv')
 
 
 
@@ -215,7 +215,7 @@ fviz_pca_ind(pca_result,
 # Prep species data
 pca_species<-as.data.frame(pca_result$rotation)
 pca_species$species<-rownames(pca_species)
-write.csv(pca_species,'pca_species_scores.csv')
+write.csv(pca_species,'Data/pca_species_scores.csv')
 
 
 # Prep plot data
@@ -224,7 +224,7 @@ write.csv(pca_species,'pca_species_scores.csv')
 pca_site$cluster<-as.factor(kmeans_res$cluster)
 
 pca_site$plot_id<-rownames(pca_site)
-write.csv(pca_site,'pca_site_scores.csv')
+write.csv(pca_site,'Data/pca_site_scores.csv')
 
 
 
@@ -333,8 +333,8 @@ ggplot() +
 
 
 # Save these for further analyses
-write.csv(nms_scores,file='nmds_scores.csv')
-write.csv(nms_species,file='nmds_species.csv')
+write.csv(nms_scores,file='Data/nmds_scores.csv')
+write.csv(nms_species,file='Data/nmds_species.csv')
 
 
 
@@ -517,9 +517,9 @@ ggplot(umap_data, aes(x = UMAP1, y = UMAP2, color = cluster)) +
 
 
 # Save species and plot scores with cluster assignments
-write.csv(spscores,'umap_species_scores.csv')
+write.csv(spscores,'Data/umap_species_scores.csv')
 
-write.csv(umap_data,'umap_plot_scores.csv')
+write.csv(umap_data,'Data/umap_plot_scores.csv')
 
 
 

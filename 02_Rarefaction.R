@@ -28,8 +28,8 @@ library(iNEXT)
 #############################
 # Read in data
 ############################
-plots<-read.csv('single_census_plot.csv') 
-stems<-read.csv('single_census_stems.csv')
+plots<-read.csv('Data/single_census_plot.csv') 
+stems<-read.csv('Data/single_census_stems.csv')
 
 
 #############################
