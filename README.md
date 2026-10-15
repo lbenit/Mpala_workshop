@@ -1,4 +1,6 @@
-# This repo contains scripts for the biodiversity and floristics day of the SEOSAW Mpala WOrkshop (2026). 
+# Read me
+
+This repo contains scripts for the biodiversity and floristics day of the SEOSAW Mpala Workshop (2026). 
 
 
 
