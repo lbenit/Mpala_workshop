@@ -28,6 +28,7 @@ library(ggplot2)
 library(tibble)
 library(viridis)
 library(tidyr)
+library(stringr)
 
 # New package
 install.packages('vegan')
@@ -71,6 +72,47 @@ s<-stems%>%
 #*Q1b: How many stems are we using for this analysis? How many were removed? 
 
 
+
+
+
+#############################
+# Check taxonomy
+############################
+
+# It is good practice to chekc the species names in your data before proceeding
+# Misspellings may mean there are duplicates of the same species
+# We do not want to count one species as two, so we need to make sure that everything is spelled correctly
+# Check species names with the following code
+sort(unique(s$species_name_clean))
+
+
+
+# The good news about this dataset is that it is pretty clean already, 
+# there are no mispellings that lead to a species appearing twice in the dataset. 
+# However, there are some individuals that are not determined to species. 
+# e.g. "Vitex indet". (indet stands for indeterminate).
+# We do not know if Vitex indet in one plot is the same as Vitex indet in another plot. 
+# This is a common issue and common practice is to remove indets
+
+
+# We can filter out rows that have indet in the species column with the following code
+s_no_indets <- s %>% filter(!str_detect(species_name_clean, "indet"))
+
+#Compare how many rows are removed
+nrow(s)
+nrow(s_no_indets)
+
+
+# For this analysis, we are going to keep the stems not identified to species as we are calculating 
+# diversity on a plot level and unidentified species are likely to be different from identified species 
+# on the same plot
+
+
+
+
+
+
+
 ######################################
 #Create abundance matrix
 #######################################
@@ -83,7 +125,7 @@ abundance<-s%>%
   mutate(across(everything(), ~replace_na(.x, 0)))%>% # Replace NA with zeros
   column_to_rownames("plot_id")# move plot_id to row names so that entire data frame is numbers
 
-# Remove unidentified species
+# Remove unidentified genus and species
 abundance<-abundance%>%
   select(-`Indet indet`) # SEOSAW uses indet to mean that the species was not identified
 
@@ -139,7 +181,7 @@ calc_diversity <- function(comm_matrix) {
   return(results)
 }
 
-# Use function to calcualte metrics
+# Use function to calculate metrics
 diversity_data<-calc_diversity(comm_matrix)
 
 

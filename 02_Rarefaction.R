@@ -107,12 +107,12 @@ rarecurve(filtered_matrix, sample=10)
 
 # iNext is an R package that is specifically designed for rarefaction analysis. 
 # It has several advantages over vegan including:
-# - It can extrpolate to predict the diversity with more plots/stems
+# - It can extrapolate to predict the diversity with more plots/stems
 # - It allows easy analysis of site level diversity and comparison
 # - It allows calculation of rarefaction using species richness, shannon diveristy,
 #     and Simpson diversity, while vegan only uses species richness
-# - It automatically generates conficdence intervals
-# - It uses ggplot, so making nice figures is a lot easier
+# - It automatically generates confidence intervals
+# - It automatically uses ggplot, so making nice figures is a lot easier
 
 # You can take a look at this tutorial for more information of iNext
 # https://johnsonhsieh.github.io/iNEXT/inst/doc/Introduction.html
