@@ -62,6 +62,7 @@ p<-plots%>%
 s<-stems%>%
   filter(plot_id%in% p$plot_id)%>% #Filter to remove stems that are in plots that were removed because of plot size differences
   filter(diam_adj>=10)%>% #Only keep stems greater than or equal to 10 as some plots include smaller stems
+ # We use diam_adj instead of diam to standarise between trees that have different points of measurement
   filter(stem_status=='a')%>% # Only keep trees that are alive
   select(plot_id,stem_id,species_name_clean,diam_adj)%>%# Keep only a few useful columns
   distinct() # This function is great for removing duplicates. It checks that there are no repeated rows.

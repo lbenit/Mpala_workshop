@@ -248,6 +248,7 @@ bio_distmat <-
 
 
 # Run NMDS in vegan (metaMDS)
+# This may take a few minutes to run
 bio_NMS <-
   metaMDS(bio_distmat,
           k = 3,
@@ -322,7 +323,7 @@ ggplot(nms_scores, aes(NMDS1, NMDS2, color = cluster)) +
 
 # Add species names to plot
 ggplot() +
-  geom_point(data = nms_sites,
+  geom_point(data = nms_scores,
              aes(NMDS1, NMDS2, color = cluster),
              size = 2) +
   # add species labels
@@ -377,7 +378,7 @@ umap_result <- umap(
   dist_matrix, 
   input = "dist", 
   n_neighbors = 100, 
-  min_dist = 1, 
+  min_dist = 0.5, 
   n_components = 2 # Number of dimensions to reduce to: use either 2 or 3
 )
 
@@ -388,7 +389,7 @@ colnames(umap_data) <- c("UMAP1", "UMAP2")
 umap_coords$plot_id <- rownames(umap_data)
 
 # Plot umap
-ggplot(umap_coords, aes(x = UMAP1, y = UMAP2)) +
+ggplot(umap_data, aes(x = UMAP1, y = UMAP2)) +
   geom_point(color = "darkgreen", size = 2) +
   labs(title = "UMAP Projection (Bray-Curtis Distance)") +
   theme_minimal() +
@@ -421,6 +422,10 @@ rect.hclust(hc, k = 6, border = "blue")
 ##########
 # Determine the optimal number of clusters using the average silhouette scores
 ############
+
+# In this section, we are calculating the mean silhouette width of each cluster
+# for clusters numbered 2 to 15. The higher mean silhouette width is, the better 
+# defined and separated the clusters are. 
 
 # Initialize vector to store scores
 sil_width_hc <- c()
@@ -456,6 +461,7 @@ plot(2:max_k, sil_width_hc,
 
 #****************************
 #*Q4: What is the best number of clusters according to the silhouette scores?
+#* Hint: Which numbers of clusters has the highest average silhouette width?
 
 
 

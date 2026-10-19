@@ -8,6 +8,9 @@
 # This script shows how to create rarefaction curves using two packages: vegan 
 # and iNext. Rarefaction is useful for understanding how sampling affects
 # observed species richness. 
+# We rarefy to 10 stems in this script, removing plots with fewer stems. 
+# It is important to remember how many stems you are rarefying to in this analysis
+# for some of the questions.
 
 #############################
 # Load packages
@@ -37,6 +40,7 @@ stems<-read.csv('Data/single_census_stems.csv')
 ############################
 
 # This script starts the same as the previous one.
+
 
 # Clean plots
 p<-plots%>%
