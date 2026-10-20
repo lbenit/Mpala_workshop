@@ -125,9 +125,12 @@ comm_matrix<-as.matrix(abund)
 filtered_matrix <- comm_matrix[rowSums(comm_matrix) > 0, ]# Remove plots with fewer than 10 stems
 
 
-# Convert values using Hellinger method
+# Standarise values using Hellinger method
 # Hellinger is particularly good for data with a lot of zeros
 # It divides all values by the row sum and takes the square root of the values
+# All values end up between 0 and 1
+# This standarisation is important because data that exists on different scales
+# will skew the ordination
 bio_hel <- decostand(filtered_matrix, method = "hellinger")
 
 
@@ -177,8 +180,11 @@ pca_site<-as.data.frame(pca_result$x)
 
 
 # Identify ideal number of clusters
-fviz_nbclust(pca_site, kmeans, method = "wss", k.max=20) + 
-  labs(subtitle = "Elbow Method")
+fviz_nbclust(pca_site, 
+             kmeans, # Function for clustering, either kmeans or hcut (hierarchical) 
+             method = "wss", #Cluster evaluation method, look at documentation for more options
+             k.max=20) + #Maximum number of clusters to test
+  labs(subtitle = "Use the Elbow Method")
 # Look at the plot and determine at which number of clusters the curve
 # goes from being vertical to being horizontal
 # This is called the elbow method
@@ -203,6 +209,7 @@ fviz_pca_ind(pca_result,
 
 
 #*Q2: Test out a few different K numbers. Which visually looks the best?
+#*    Does the best visual answer match the elbow method?
 #*    There is not a correct answer with this one, just a thought exercise.
 
 
@@ -297,7 +304,7 @@ plot(1:10, wss, type = "b",
      xlab = "Number of clusters (k)",
      ylab = "Within-cluster sum of squares")
 
-# Specify number of clsuters (k) and assign plots to clusters
+# Specify number of clusters (k) and assign plots to clusters
 set.seed(123)   # for reproducibility
 km <- kmeans(nms_scores, centers = 6)
 nms_scores$cluster <- as.factor(km$cluster)
@@ -370,23 +377,25 @@ write.csv(nms_species,file='Data/nmds_species.csv')
 ##################
 # Run umap using distance matrix calculated earlier
 ##################
-# Convert to matrix
+# Convert to matrix format
 dist_matrix<-as.matrix(bio_distmat)
 
 # Run umap
 umap_result <- umap(
   dist_matrix, 
-  input = "dist", 
-  n_neighbors = 100, 
-  min_dist = 0.5, 
+  input = "dist", # There are many options. I chose to use a recomputed distance matrix.
+  n_neighbors = 100, # High values represent global structure, low local
+  min_dist = 0.5, # Minimum distance points are allowed to be next to each other
   n_components = 2 # Number of dimensions to reduce to: use either 2 or 3
 )
+
+# Look at the website and my bonus slides for more info on selecting parameters
 
 
 # Extract results to dataframe
 umap_data <- as.data.frame(umap_result$layout)
 colnames(umap_data) <- c("UMAP1", "UMAP2")
-umap_coords$plot_id <- rownames(umap_data)
+umap_data$plot_id <- rownames(umap_data)
 
 # Plot umap
 ggplot(umap_data, aes(x = UMAP1, y = UMAP2)) +
@@ -431,7 +440,7 @@ rect.hclust(hc, k = 6, border = "blue")
 sil_width_hc <- c()
 
 # Loop through k = 2 to 15 (adjust max if you expect more clusters)
-max_k <- 15 #chnage number to adjust how many clusters to test
+max_k <- 15 #change number to adjust how many clusters to test
 
 # Run loop to get scores for each number of clusters
 for(i in 2:max_k){

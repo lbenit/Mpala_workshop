@@ -86,16 +86,17 @@ filtered_matrix <- comm_matrix[rowSums(comm_matrix) >= 10, ]# Remove plots with 
 ######################################
 # Generate plot level rarefaction curves
 #######################################
-rarecurve(filtered_matrix, sample=10)
+rarecurve(filtered_matrix)
 
-# The resulting plot has many horizontal lines
+
 
 
 
 #*****************
-#*Q1: The resulting plot has many horizontal lines.
-#* Why is this happening and what does it mean?
-#* How would you go about removing them?
+#*Q1: Does it seem like most plots reach an asymptote?
+#* Do you think most of these plots represent the diversity 
+#* of the site well?
+
 
 
 
@@ -126,11 +127,11 @@ rarecurve(filtered_matrix, sample=10)
 ###############################
 # For this tutorial, we are using iNext to compare the sampling and diversity
 # between our three sites.
-# iNext needs a different data fomrat than vegan and we need to retain the 
+# iNext needs a different data format than vegan and we need to retain the 
 # information about which plots belong to which sites
 
 
-# First we keep infomration about the sites
+# First we keep information about the sites
 plot_cluster<-p%>%select(plot_id,plot_cluster)
 
 
@@ -158,61 +159,29 @@ species_wide<-species_long%>%
 
 
 ##############################
-# Caclulate rarefaction
+# Calculate rarefaction
 ##############################
 D_abund <- iNEXT(species_wide,
-                 q=1, # Change to alter diversity metric 
+                 q=3, # Change to alter diversity metric 
                  datatype = 'abundance', 
                  nboot=100)
 
 plot(D_abund)
 
+
 #*****************
-#*Q2: iNext allows you to examine diversity using three metrics.
+#*Q2: Which site has the greatest species richness? 
+#*    Have the sites been sampled well?
+
+
+
+
+
+#*****************
+#*Bonus: iNext allows you to examine diversity using three metrics.
 #*    Change q in the code above to compare different metrics. 
 #*    1 is richness, 2 is shannon, and 3 is simpson
 #*    How do they differ?
-
-
-
-
-
-
-
-
-
-
-
-
-######################################
-# Visualisation 
-######################################
-
-# iNext allows for the data to be visualised using three methods
-# 1. Sample-size-based R/E curve (type=1). 
-# This curve plots diversity estimates with confidence intervals (if se=TRUE) as a 
-# function of sample size up to double the reference sample size, by default, 
-# or a user‐specified endpoint.
-
-# 2. Sample completeness curve (type=2) with confidence intervals. 
-# This curve plots the sample coverage with respect to sample size for the same 
-# range described in (1).
-
-# 3. Coverage-based R/E curve (type=3). 
-# This curve plots the diversity estimates with confidence intervals as a function 
-# of sample coverage up to the maximum coverage obtained from the maximum size described in (1).
-
-
-
-ggiNEXT(D_abund, type=1)
-ggiNEXT(D_abund, type=2)
-ggiNEXT(D_abund, type=3)
-
-
-#*****************
-#*Q3: What do these plots mean and how do they differ?
-
-
 
 
 
@@ -248,4 +217,31 @@ plot1
 
 
 
+######################################
+# Bonus: Visualisation 
+######################################
+
+# iNext allows for the data to be visualised using three methods
+# 1. Sample-size-based R/E curve (type=1). 
+# This curve plots diversity estimates with confidence intervals as a 
+# function of sample size up to double the reference sample size, by default, 
+# or a user‐specified endpoint.
+
+# 2. Sample completeness curve (type=2) with confidence intervals. 
+# This curve plots the sample coverage with respect to sample size for the same 
+# range described in (1).
+
+# 3. Coverage-based R/E curve (type=3). 
+# This curve plots the diversity estimates with confidence intervals as a function 
+# of sample coverage up to the maximum coverage obtained from the maximum size described in (1).
+
+
+
+ggiNEXT(D_abund, type=1)
+ggiNEXT(D_abund, type=2)
+ggiNEXT(D_abund, type=3)
+
+
+#*****************
+#*Bonus: What do these plots mean and how do they differ?
 

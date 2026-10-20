@@ -47,7 +47,7 @@ stems<-read.csv('Data/single_census_stems.csv')
 ############################
 
 # For this tutorial, we want to restrict the plots to ones that are the same size
-# and make sure that we are only examining tress with dbh >10cm.
+# and make sure that we are only examining trees with dbh >10cm.
 # We also only want to look at trees that are alive. 
 
 # There are a lot of columns in both data frames and we won't need all of them. 
@@ -80,7 +80,7 @@ s<-stems%>%
 # Check taxonomy
 ############################
 
-# It is good practice to chekc the species names in your data before proceeding
+# It is good practice to check the species names in your data before proceeding
 # Misspellings may mean there are duplicates of the same species
 # We do not want to count one species as two, so we need to make sure that everything is spelled correctly
 # Check species names with the following code
@@ -88,27 +88,27 @@ sort(unique(s$species_name_clean))
 
 
 
-# The good news about this dataset is that it is pretty clean already, 
-# there are no mispellings that lead to a species appearing twice in the dataset. 
+# The good news about this dataset is that it is mostly clean.
 # However, there are some individuals that are not determined to species. 
 # e.g. "Vitex indet". (indet stands for indeterminate).
-# We do not know if Vitex indet in one plot is the same as Vitex indet in another plot. 
+# We do not know if Uapaca indet in one plot is the same as Uapaca indet in another plot. 
 # This is a common issue and common practice is to remove indets
 
 
 # We can filter out rows that have indet in the species column with the following code
 s_no_indets <- s %>% filter(!str_detect(species_name_clean, "indet"))
 
+
+
 #Compare how many rows are removed
 nrow(s)
 nrow(s_no_indets)
 
 
-# For this analysis, we are going to keep the stems not identified to species as we are calculating 
-# diversity on a plot level and unidentified species are likely to be different from identified species 
-# on the same plot
+# For this analysis, we are going to keep the stems not identified to species
+# so that we have a few more stems and plots to use in this analysis
 
-
+# An alternative to deal with this problem is to look at diversity on the genus level
 
 
 
@@ -159,17 +159,17 @@ calc_diversity <- function(comm_matrix) {
   # Shannon diversity
   shannon <- diversity(comm_matrix, index = "shannon")
   
-  # Simpson diversity (1 - D)
+  # Simpson diversity
   simpson <- diversity(comm_matrix, index = "simpson")
   
-  # Inverse Simpson diversity (1 / D)
+  # Inverse Simpson diversity
   inv_simpson <- diversity(comm_matrix, index = "invsimpson")
   
-  # Pielou's evenness (J' = H' / ln(Richness))
+  # Evenness (J' = H' / ln(Richness))
   evenness <- shannon / log(richness)
   
   
-  # Combine into a clean data frame
+  # Combine into a data frame
   results <- data.frame(
     plot_id = rownames(comm_matrix),
     richness = richness,
@@ -235,13 +235,15 @@ diversity_summary<-biodiversity_data%>%
             mean_rarified=mean(rarefied,na.rm=TRUE),
             sd_rarified=sd(rarefied,na.rm=TRUE))
 
+View(diversity_summary)
+
 # Save
 write.csv(diversity_summary,'Data/diversity_metrics_by_site.csv')
 
 #********
-#*Q3: How would you calculate the mean across all sites?
-#* 
-#* Bonus question: How would you rewrite this using across()?
+#*Q3: Which plot cluster has the greatest mean richness? 
+#* How would you calculate the mean across all sites?
+
 
 
 
@@ -285,6 +287,9 @@ plot_even <- ggplot(data=biodiversity_data, aes(y=evenness, x=plot_cluster,fill=
 
 plot_even
 
+#************
+#*Q4: Make plots for the other metrics below:
+
 
 # Plot rarefied richness
 
@@ -295,9 +300,6 @@ plot_even
 # Plot Inverse Simpson
 
 
-
-#*****************************
-#* Q4: How would you use facet() to make a plot of all metrics?
 
 
 
@@ -329,7 +331,4 @@ final_plot
 
 # Save final plot using ggplot
 ggsave('diversity_metrics.png', final_plot, bg='transparent',
-       width = 9,
-       height = 11,
-       units = 'in',
        dpi = 300)
